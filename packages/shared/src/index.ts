@@ -29,6 +29,10 @@ export const Finding = z.object({
   message: z.string(),
   /** Quoted text, URL or value that supports the finding. */
   evidence: z.string().optional(),
+  /** Sources backing the finding (e.g. fact-check articles). */
+  links: z.array(z.object({ title: z.string(), url: z.string() })).optional(),
+  /** Short label shown as a badge, e.g. a fact-check verdict. */
+  tag: z.string().optional(),
 });
 export type Finding = z.infer<typeof Finding>;
 

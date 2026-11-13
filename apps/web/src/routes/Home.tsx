@@ -98,7 +98,8 @@ export function Home() {
           <li><b className="text-ink">Publisher</b>: domain age, look-alike domains, transparency pages, bylines.</li>
           <li><b className="text-ink">Timing</b>: missing or conflicting dates, recycled old stories.</li>
           <li><b className="text-ink">Presentation</b>: clickbait headlines, links to primary sources, ad load.</li>
-          <li><b className="text-ink">Fact check & images</b>: coming soon.</li>
+          <li><b className="text-ink">Fact check</b>: key claims checked against professional fact-checks and current reporting, with sources.</li>
+          <li><b className="text-ink">Images</b>: coming soon.</li>
         </ul>
       </aside>
     </div>
