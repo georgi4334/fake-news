@@ -1,5 +1,7 @@
-import { AnalyzeJsonRequest, type ProgressEvent } from "@veritas/shared";
-import { Router } from "express";
+import { AnalyzeJsonRequest, IMAGE_ARTIFACT_KINDS, MAX_UPLOAD_BYTES, type ImageArtifactKind, type ProgressEvent } from "@veritas/shared";
+import { Router, type ErrorRequestHandler } from "express";
+import multer from "multer";
+import { UnsupportedImageError, loadImage } from "../images/load.js";
 import { UnsafeUrlError, assertPublicUrl } from "../extract/safeFetch.js";
 import { enqueueAnalysis } from "../queue/queue.js";
 import { bus } from "../queue/bus.js";
@@ -25,6 +27,57 @@ analyzeRouter.post("/analyze", async (req, res, next) => {
     const rec = await store.create(input.kind, input);
     await enqueueAnalysis(rec.id, input);
     res.status(202).json({ id: rec.id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: MAX_UPLOAD_BYTES, files: 1, fields: 2, fieldSize: 2000 } });
+
+analyzeRouter.post("/analyze/image", upload.single("image"), async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: "Attach an image in the \"image\" field" });
+    try {
+      await loadImage(req.file.buffer); // checks the real format from the bytes
+    } catch (err) {
+      if (err instanceof UnsupportedImageError) return res.status(415).json({ error: err.message });
+      throw err;
+    }
+    const caption = typeof req.body?.caption === "string" ? req.body.caption.trim().slice(0, 1000) || undefined : undefined;
+    const input = { kind: "image" as const, caption };
+    const rec = await store.create("image", input);
+    await store.putArtifact(rec.id, 0, "upload", { mime: req.file.mimetype, data: req.file.buffer });
+    await enqueueAnalysis(rec.id, input);
+    res.status(202).json({ id: rec.id });
+  } catch (err) {
+    next(err);
+  }
+});
+
+const onUploadError: ErrorRequestHandler = (err, _req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    const status = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+    const message = err.code === "LIMIT_FILE_SIZE" ? `Image is larger than ${MAX_UPLOAD_BYTES / 1024 / 1024} MB` : err.message;
+    return res.status(status).json({ error: message });
+  }
+  next(err);
+};
+analyzeRouter.use("/analyze/image", onUploadError);
+
+analyzeRouter.get("/analyses/:id/images/:index/:kind", async (req, res, next) => {
+  try {
+    const index = Number(req.params.index);
+    const kind = req.params.kind as ImageArtifactKind;
+    if (!Number.isInteger(index) || index < 0 || !IMAGE_ARTIFACT_KINDS.includes(kind)) return res.status(404).end();
+    const artifact = await store.getArtifact(req.params.id, index, kind);
+    if (!artifact || !artifact.mime.startsWith("image/")) return res.status(404).end();
+    res.set({
+      "content-type": artifact.mime,
+      "cache-control": "private, max-age=86400",
+      "x-content-type-options": "nosniff",
+      "cross-origin-resource-policy": "same-site",
+    });
+    res.send(artifact.data);
   } catch (err) {
     next(err);
   }

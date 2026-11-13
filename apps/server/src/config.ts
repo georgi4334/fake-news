@@ -9,11 +9,16 @@ export const config = {
   /** Claude is optional: without a key, analyzers fall back to local heuristics. */
   llmEnabled: Boolean(process.env.ANTHROPIC_API_KEY) && process.env.DISABLE_LLM !== "1",
   googleFactCheckKey: process.env.GOOGLE_FACTCHECK_API_KEY || undefined,
+  googleVisionKey: process.env.GOOGLE_VISION_API_KEY || undefined,
+  /** Max article images analyzed per URL. */
+  maxArticleImages: Number(process.env.MAX_ARTICLE_IMAGES ?? 4),
   factcheck: {
     maxClaims: Number(process.env.FACTCHECK_MAX_CLAIMS ?? 6),
     /** Web searches are billed per search, so this caps the cost of checking one article. */
     maxSearches: Number(process.env.FACTCHECK_MAX_SEARCHES ?? 8),
   },
+  /** Analyses per minute per IP. */
+  rateLimitPerMinute: Number(process.env.RATE_LIMIT_PER_MIN ?? 10),
   fetchTimeoutMs: 15_000,
   maxHtmlBytes: 5 * 1024 * 1024,
 };

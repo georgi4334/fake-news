@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import type {
   BetaContentBlock,
+  BetaContentBlockParam,
   BetaMessage,
   BetaMessageParam,
   BetaToolUnion,
@@ -32,7 +33,8 @@ export class LlmUnavailableError extends Error {}
  */
 export async function askStructured<S extends z.ZodType>(opts: {
   system: string;
-  prompt: string;
+  /** Plain text, or content blocks (e.g. images followed by text). */
+  prompt: string | BetaContentBlockParam[];
   schema: S;
   effort?: "low" | "medium" | "high";
   maxTokens?: number;

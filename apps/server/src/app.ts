@@ -13,7 +13,7 @@ export function createApp() {
   app.use(express.json({ limit: "500kb" }));
 
   app.get("/api/health", (_req, res) => res.json({ ok: true, llm: config.llmEnabled }));
-  app.use("/api/analyze", rateLimit({ windowMs: 60_000, limit: 10, standardHeaders: "draft-8", legacyHeaders: false }));
+  app.use("/api/analyze", rateLimit({ windowMs: 60_000, limit: config.rateLimitPerMinute, standardHeaders: "draft-8", legacyHeaders: false }));
   app.use("/api", analyzeRouter);
 
   const onError: ErrorRequestHandler = (err, _req, res, _next) => {

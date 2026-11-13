@@ -1,4 +1,4 @@
-import type { Finding, SignalId, SignalResult } from "@veritas/shared";
+import type { Finding, ImageCheck, SignalId, SignalResult } from "@veritas/shared";
 import type { ArticleContext } from "../extract/article.js";
 
 export interface AnalyzerOutput {
@@ -8,6 +8,8 @@ export interface AnalyzerOutput {
   findings: Finding[];
   /** Set when the analyzer could not run for this input (e.g. no images). */
   skipped?: boolean;
+  /** Analyzer-specific detail stored on the report. */
+  extra?: { images?: ImageCheck[] };
 }
 
 export interface Analyzer {

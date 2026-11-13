@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
-import type { AnalyzeJsonRequest } from "@veritas/shared";
+import { MAX_UPLOAD_BYTES, type AnalyzeJsonRequest } from "@veritas/shared";
 import { useState, type FormEvent } from "react";
+import { ImageDrop } from "../components/ImageDrop";
 import { useNavigate } from "react-router";
 import { api, errorMessage } from "../lib/api";
 
@@ -16,10 +17,13 @@ export function Home() {
   const [title, setTitle] = useState("");
   const [publisher, setPublisher] = useState("");
   const [publishedAt, setPublishedAt] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [caption, setCaption] = useState("");
   const navigate = useNavigate();
 
   const mutation = useMutation({
-    mutationFn: (body: AnalyzeJsonRequest) => api.analyze(body),
+    mutationFn: (body: AnalyzeJsonRequest | { kind: "image"; file: File; caption?: string }) =>
+      body.kind === "image" ? api.analyzeImage(body.file, body.caption) : api.analyze(body),
     onSuccess: ({ id }) => navigate(`/report/${id}`),
   });
 
@@ -34,6 +38,7 @@ export function Home() {
         publisher: publisher || undefined,
         publishedAt: publishedAt || undefined,
       });
+    if (tab === "image" && file) mutation.mutate({ kind: "image", file, caption: caption.trim() || undefined });
   }
 
   return (
@@ -76,14 +81,21 @@ export function Home() {
             </>
           )}
           {tab === "image" && (
-            <div className="border border-dashed border-rule rounded-sm p-10 text-center text-muted bg-card">
-              Image forensics (AI-generation and editing detection) is coming in the next release.
-            </div>
+            <>
+              <ImageDrop file={file} onChange={setFile} maxBytes={MAX_UPLOAD_BYTES} />
+              <input
+                className={input}
+                placeholder="What is this image claimed to show? (optional, e.g. “Flooding in Varna yesterday”)"
+                maxLength={1000}
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+              />
+            </>
           )}
 
           {mutation.isError && <p className="text-bad text-sm" role="alert">{errorMessage(mutation.error)}</p>}
 
-          {tab !== "image" && (
+          {(tab !== "image" || file) && (
             <button type="submit" disabled={mutation.isPending} className="bg-ink text-paper px-6 py-2.5 rounded-sm font-medium hover:bg-accent disabled:opacity-60 transition-colors">
               {mutation.isPending ? "Submitting…" : "Check credibility"}
             </button>
@@ -99,7 +111,7 @@ export function Home() {
           <li><b className="text-ink">Timing</b>: missing or conflicting dates, recycled old stories.</li>
           <li><b className="text-ink">Presentation</b>: clickbait headlines, links to primary sources, ad load.</li>
           <li><b className="text-ink">Fact check</b>: key claims checked against professional fact-checks and current reporting, with sources.</li>
-          <li><b className="text-ink">Images</b>: coming soon.</li>
+          <li><b className="text-ink">Images</b>: AI-generation declarations, generator metadata, editing, reuse of old photos, and whether the picture matches its caption.</li>
         </ul>
       </aside>
     </div>

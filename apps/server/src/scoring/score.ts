@@ -1,4 +1,4 @@
-import { SIGNAL_LABELS, type Band, type SignalResult } from "@veritas/shared";
+import { SIGNAL_IDS, SIGNAL_LABELS, type Band, type SignalId, type SignalResult } from "@veritas/shared";
 import { SIGNAL_WEIGHTS } from "../config.js";
 
 /** Below this share of evidence weight we refuse to give a score at all. */
@@ -25,8 +25,9 @@ export function bandFor(score: number): Band {
  * Confidence-weighted mean of the signal scores. Signals that were skipped or failed don't
  * drag the score down; they reduce coverage, and too little coverage yields "unknown".
  */
-export function computeOverall(signals: SignalResult[]): OverallScore {
-  const totalWeight = Object.values(SIGNAL_WEIGHTS).reduce((a, b) => a + b, 0);
+export function computeOverall(signals: SignalResult[], applicable: readonly SignalId[] = SIGNAL_IDS): OverallScore {
+  // Coverage is measured against the signals that make sense for this input (an uploaded image has no publisher).
+  const totalWeight = applicable.reduce((a, id) => a + SIGNAL_WEIGHTS[id], 0);
   let weighted = 0;
   let weightSum = 0;
   for (const s of signals) {

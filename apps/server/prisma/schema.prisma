@@ -19,6 +19,7 @@ model Analysis {
   band       String   @default("unknown")
   coverage   Float    @default(0)
   topReasons Json     @default("[]")
+  images     Json     @default("[]")
   error      String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -31,4 +32,17 @@ model CacheEntry {
   key       String   @id
   value     Json
   expiresAt DateTime
+}
+
+/// Image bytes tied to an analysis: thumbnails and ELA heatmaps (kept), uploads (deleted after the job).
+model ImageArtifact {
+  id         String   @id @default(cuid())
+  analysisId String
+  index      Int
+  kind       String
+  mime       String
+  data       Bytes
+  createdAt  DateTime @default(now())
+
+  @@unique([analysisId, index, kind])
 }

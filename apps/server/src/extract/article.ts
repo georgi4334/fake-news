@@ -4,7 +4,13 @@ import type { ArticleMeta } from "@veritas/shared";
 
 /** Everything the analyzers get to look at. */
 export interface ArticleContext {
-  inputKind: "url" | "text";
+  inputKind: "url" | "text" | "image";
+  /** Set by the job runner so analyzers can store artifacts (image thumbnails, heatmaps). */
+  analysisId?: string;
+  /** Images the user uploaded directly (image input only). */
+  uploadedImages?: Buffer[];
+  /** Caption or claim the user submitted with an uploaded image. */
+  caption?: string;
   meta: ArticleMeta;
   text: string;
   /** Present only for URL inputs. */
@@ -147,6 +153,16 @@ export function extractFromHtml(html: string, url: string, redirects: string[] =
       canonicalUrl: doc.querySelector('link[rel="canonical"]')?.getAttribute("href") ?? undefined,
       siteName,
     },
+  };
+}
+
+export function contextFromImage(images: Buffer[], caption?: string): ArticleContext {
+  return {
+    inputKind: "image",
+    text: caption?.trim() ?? "",
+    caption: caption?.trim() || undefined,
+    uploadedImages: images,
+    meta: { title: caption?.trim() || undefined, wordCount: 0, imageUrls: [] },
   };
 }
 

@@ -82,6 +82,27 @@ export type AnalysisStatus = z.infer<typeof AnalysisStatus>;
 export const InputKind = z.enum(["url", "text", "image"]);
 export type InputKind = z.infer<typeof InputKind>;
 
+/** Forensic result for one image (article image or upload). */
+export const ImageCheck = z.object({
+  index: z.number(),
+  sourceUrl: z.string().optional(),
+  width: z.number(),
+  height: z.number(),
+  format: z.string(),
+  score: z.number(),
+  confidence: z.number(),
+  /** Thumbnail and error-level heatmap are served from /api/analyses/:id/images/:index/{thumb,ela}. */
+  hasThumbnail: z.boolean(),
+  hasHeatmap: z.boolean(),
+  findings: z.array(Finding),
+});
+export type ImageCheck = z.infer<typeof ImageCheck>;
+
+export const IMAGE_ARTIFACT_KINDS = ["thumb", "ela"] as const;
+export type ImageArtifactKind = (typeof IMAGE_ARTIFACT_KINDS)[number];
+
+export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+
 export const Report = z.object({
   id: z.string(),
   inputKind: InputKind,
@@ -94,6 +115,7 @@ export const Report = z.object({
   coverage: z.number(),
   topReasons: z.array(z.string()),
   signals: z.array(SignalResult),
+  images: z.array(ImageCheck).default([]),
   error: z.string().optional(),
 });
 export type Report = z.infer<typeof Report>;

@@ -5,6 +5,12 @@ export const http = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? "/ap
 
 export const api = {
   analyze: (body: AnalyzeJsonRequest) => http.post<AnalyzeResponse>("/analyze", body).then((r) => r.data),
+  analyzeImage(file: File, caption?: string) {
+    const form = new FormData();
+    form.append("image", file);
+    if (caption) form.append("caption", caption);
+    return http.post<AnalyzeResponse>("/analyze/image", form).then((r) => r.data);
+  },
   report: (id: string) => http.get<Report>(`/analyses/${id}`).then((r) => r.data),
   history: () => http.get<HistoryItem[]>("/analyses").then((r) => r.data),
   /** Opens the SSE progress stream. Returns a function that closes it. */

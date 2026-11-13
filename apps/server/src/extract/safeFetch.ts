@@ -46,8 +46,17 @@ export interface FetchedPage {
   redirects: string[];
 }
 
-/** GET a public web page: re-validates every redirect hop, caps size and time. */
-export async function safeFetchText(rawUrl: string, maxRedirects = 5): Promise<FetchedPage> {
+interface RawFetch {
+  finalUrl: string;
+  status: number;
+  contentType: string;
+  data: Buffer;
+  truncated: boolean;
+  redirects: string[];
+}
+
+/** GET a public URL: re-validates every redirect hop, caps size and time. */
+async function safeFetchRaw(rawUrl: string, accept: string, maxBytes: number, maxRedirects = 5): Promise<RawFetch> {
   let current = rawUrl;
   const redirects: string[] = [];
   for (let hop = 0; hop <= maxRedirects; hop++) {
@@ -55,10 +64,7 @@ export async function safeFetchText(rawUrl: string, maxRedirects = 5): Promise<F
     const res = await fetch(url, {
       redirect: "manual",
       signal: AbortSignal.timeout(config.fetchTimeoutMs),
-      headers: {
-        "user-agent": "Mozilla/5.0 (compatible; VeritasBot/0.1; credibility-analysis)",
-        accept: "text/html,application/xhtml+xml",
-      },
+      headers: { "user-agent": "Mozilla/5.0 (compatible; VeritasBot/0.1; credibility-analysis)", accept },
     });
     if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {
       redirects.push(current);
@@ -66,14 +72,31 @@ export async function safeFetchText(rawUrl: string, maxRedirects = 5): Promise<F
       continue;
     }
     const contentType = res.headers.get("content-type") ?? "";
-    const body = await readCapped(res, config.maxHtmlBytes);
-    return { finalUrl: url.toString(), status: res.status, contentType, body, redirects };
+    const { data, truncated } = await readCapped(res, maxBytes);
+    return { finalUrl: url.toString(), status: res.status, contentType, data, truncated, redirects };
   }
   throw new Error("Too many redirects");
 }
 
-async function readCapped(res: Response, maxBytes: number): Promise<string> {
-  if (!res.body) return "";
+export async function safeFetchText(rawUrl: string): Promise<FetchedPage> {
+  const r = await safeFetchRaw(rawUrl, "text/html,application/xhtml+xml", config.maxHtmlBytes);
+  return { finalUrl: r.finalUrl, status: r.status, contentType: r.contentType, body: r.data.toString("utf8"), redirects: r.redirects };
+}
+
+export class TooLargeError extends Error {}
+
+/** Downloads an image. Rejects non-image responses and anything over `maxBytes`. */
+export async function safeFetchImage(rawUrl: string, maxBytes: number): Promise<{ data: Buffer; finalUrl: string }> {
+  const r = await safeFetchRaw(rawUrl, "image/*", maxBytes);
+  if (r.status >= 400) throw new Error(`HTTP ${r.status}`);
+  if (!/^image\//i.test(r.contentType)) throw new Error(`Not an image (${r.contentType || "unknown type"})`);
+  if (r.truncated) throw new TooLargeError("Image is too large");
+  return { data: r.data, finalUrl: r.finalUrl };
+}
+
+/** Reads at most `maxBytes`; `truncated` tells whether the body was longer. */
+async function readCapped(res: Response, maxBytes: number): Promise<{ data: Buffer; truncated: boolean }> {
+  if (!res.body) return { data: Buffer.alloc(0), truncated: false };
   const reader = res.body.getReader();
   const chunks: Uint8Array[] = [];
   let total = 0;
@@ -83,9 +106,9 @@ async function readCapped(res: Response, maxBytes: number): Promise<string> {
     total += value.byteLength;
     if (total > maxBytes) {
       await reader.cancel();
-      break;
+      return { data: Buffer.concat(chunks), truncated: true };
     }
     chunks.push(value);
   }
-  return Buffer.concat(chunks).toString("utf8");
+  return { data: Buffer.concat(chunks), truncated: false };
 }
