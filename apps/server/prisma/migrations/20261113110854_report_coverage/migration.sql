@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Analysis" ADD COLUMN     "coverage" DOUBLE PRECISION NOT NULL DEFAULT 0;

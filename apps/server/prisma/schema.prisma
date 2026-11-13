@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Analysis {
+  id         String   @id @default(cuid())
+  inputKind  String
+  status     String   @default("queued")
+  /// Original request (URL or pasted text + metadata). Uploaded image bytes are not stored.
+  input      Json
+  meta       Json?
+  signals    Json     @default("[]")
+  score      Int?
+  band       String   @default("unknown")
+  coverage   Float    @default(0)
+  topReasons Json     @default("[]")
+  error      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+/// Generic TTL cache for slow lookups (RDAP domain age, Wayback history, fact-check results).
+model CacheEntry {
+  key       String   @id
+  value     Json
+  expiresAt DateTime
+}

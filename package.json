@@ -1,0 +1,16 @@
+{
+  "name": "veritas",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @veritas/server & npm run dev -w @veritas/web",
+    "build": "npm run build -w @veritas/web && npm run build -w @veritas/server",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "db:migrate": "npm run db:migrate -w @veritas/server",
+    "worker": "npm run worker -w @veritas/server"
+  }
+}

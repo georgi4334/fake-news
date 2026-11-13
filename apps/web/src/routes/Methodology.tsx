@@ -1,0 +1,28 @@
+export function Methodology() {
+  return (
+    <article className="max-w-prose">
+      <h1 className="font-display text-3xl font-semibold">How Veritas scores an article</h1>
+      <p className="mt-4">
+        No single tell reliably identifies false news, so Veritas combines independent signals. Each produces a score from 0 to 100,
+        a confidence, and the evidence behind it. The overall score is a confidence-weighted average; signals that could not be checked
+        are left out rather than counted against the article.
+      </p>
+      <h2 className="mt-8 font-display text-xl font-semibold">Signals and weights</h2>
+      <ul className="mt-3 list-disc pl-5 space-y-2">
+        <li><b>Fact check (30%)</b>: individual claims compared with professional fact-checks and reliable reporting. <i>Coming soon.</i></li>
+        <li><b>Writing style (20%)</b>: sensational or emotional language, unnamed sources, one-sidedness, satire markers. Combines text statistics with an AI review that must quote its evidence.</li>
+        <li><b>Publisher (20%)</b>: domain age, look-alike domains imitating real outlets, satire sites, transparency pages, author bylines.</li>
+        <li><b>Images (10%)</b>: Content Credentials, metadata, error-level analysis and reverse search for AI-generated or altered images. <i>Coming soon.</i></li>
+        <li><b>Timing (10%)</b>: missing or conflicting dates, old stories re-shared as new, dates that contradict the web archive.</li>
+        <li><b>Presentation (10%)</b>: clickbait headlines, headlines the body doesn't support, links to primary sources, ad load.</li>
+      </ul>
+      <h2 className="mt-8 font-display text-xl font-semibold">Bands</h2>
+      <p className="mt-3">75+ likely reliable · 55–74 mixed · 35–54 questionable · below 35 likely false or misleading. A confident, severe signal (such as a known satire site) caps the score at 30.</p>
+      <h2 className="mt-8 font-display text-xl font-semibold">Limits</h2>
+      <p className="mt-3">
+        A well-written article from an established outlet can still be wrong, and a small independent site can be right. Use the score as a
+        prompt to look closer, and read the evidence.
+      </p>
+    </article>
+  );
+}
