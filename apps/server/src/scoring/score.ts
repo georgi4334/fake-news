@@ -47,7 +47,7 @@ export function computeOverall(signals: SignalResult[]): OverallScore {
     .filter(({ f }) => f.severity === "high" || f.severity === "medium")
     .sort((a, b) => SEVERITY_RANK[b.f.severity] - SEVERITY_RANK[a.f.severity])
     .slice(0, 5)
-    .map(({ f, label }) => `${label}: ${f.message}`);
+    .map(({ f, label }) => `${label}: ${f.tag ? `${f.tag}: ` : ""}${f.message}`);
 
   return {
     score: score === null ? null : Math.round(score),

@@ -1,3 +1,4 @@
+import { factcheckAnalyzer } from "./factcheck.js";
 import { linguisticAnalyzer } from "./linguistic.js";
 import { notYetAvailable } from "./pending.js";
 import { presentationAnalyzer } from "./presentation.js";
@@ -10,6 +11,6 @@ export const ANALYZERS: Analyzer[] = [
   publisherAnalyzer,
   timingAnalyzer,
   presentationAnalyzer,
-  notYetAvailable("factcheck", "Claim-by-claim fact checking"),
+  factcheckAnalyzer,
   notYetAvailable("images", "Image forensics (AI-generation and editing detection)"),
 ];

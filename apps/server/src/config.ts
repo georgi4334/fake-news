@@ -8,6 +8,12 @@ export const config = {
   anthropicModel: process.env.ANTHROPIC_MODEL ?? "claude-opus-5-5",
   /** Claude is optional: without a key, analyzers fall back to local heuristics. */
   llmEnabled: Boolean(process.env.ANTHROPIC_API_KEY) && process.env.DISABLE_LLM !== "1",
+  googleFactCheckKey: process.env.GOOGLE_FACTCHECK_API_KEY || undefined,
+  factcheck: {
+    maxClaims: Number(process.env.FACTCHECK_MAX_CLAIMS ?? 6),
+    /** Web searches are billed per search, so this caps the cost of checking one article. */
+    maxSearches: Number(process.env.FACTCHECK_MAX_SEARCHES ?? 8),
+  },
   fetchTimeoutMs: 15_000,
   maxHtmlBytes: 5 * 1024 * 1024,
 };

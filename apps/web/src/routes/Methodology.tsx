@@ -9,7 +9,7 @@ export function Methodology() {
       </p>
       <h2 className="mt-8 font-display text-xl font-semibold">Signals and weights</h2>
       <ul className="mt-3 list-disc pl-5 space-y-2">
-        <li><b>Fact check (30%)</b>: individual claims compared with professional fact-checks and reliable reporting. <i>Coming soon.</i></li>
+        <li><b>Fact check (30%)</b>: an AI model picks the article's key factual claims, looks them up in published professional fact-checks (Google Fact Check Tools), then researches each one on the web and gives a verdict: supported, mostly supported, misleading, disputed, false or unverified. Only sources that actually appeared in its searches are shown. A false central claim caps this signal at 30.</li>
         <li><b>Writing style (20%)</b>: sensational or emotional language, unnamed sources, one-sidedness, satire markers. Combines text statistics with an AI review that must quote its evidence.</li>
         <li><b>Publisher (20%)</b>: domain age, look-alike domains imitating real outlets, satire sites, transparency pages, author bylines.</li>
         <li><b>Images (10%)</b>: Content Credentials, metadata, error-level analysis and reverse search for AI-generated or altered images. <i>Coming soon.</i></li>
